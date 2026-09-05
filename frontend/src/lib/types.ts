@@ -54,3 +54,72 @@ export interface Paginated<T> {
 export function fullName(user: Pick<User, "first_name" | "last_name">): string {
     return `${user.first_name} ${user.last_name}`.trim();
 }
+
+export interface ReportTask {
+  task_id: number;
+  task_name: string;
+  priority: Priority;
+  planned_percent: string | null;
+  actual_percent: string | null;
+  status: TaskStatus;
+  time_planned: string | null;
+  time_spent: string | null;
+  deliverable: string | null;
+}
+
+export interface NextWeekTask {
+  next_task_id: number;
+  description: string;
+  priority: Priority;
+}
+
+export interface ReportBlocker {
+  blocker_id: number;
+  description: string;
+  is_key_issue: boolean;
+}
+
+export interface ReportAchievement {
+  achievement_id: number;
+  description: string;
+  is_key_achievement: boolean;
+}
+
+export interface ReportHours {
+  hours_id: number;
+  task_type: string;
+  hours: string;
+}
+
+export interface ReportVersion {
+  version_id: number;
+  version_number: number;
+  submitted_at: string | null;
+  created_at: string;
+  tasks: ReportTask[];
+  next_week_tasks: NextWeekTask[];
+  blockers: ReportBlocker[];
+  achievements: ReportAchievement[];
+  hours: ReportHours[];
+}
+
+export interface ReportSummary {
+  report_id: number;
+  week_start: string;
+  week_end: string;
+  status: ReportStatus;
+  submitted_at: string | null;
+  approved_at: string | null;
+  updated_at: string;
+  user: User;
+  project: Project;
+  current_version_number: number;
+}
+
+export interface Report extends ReportSummary {
+  notes: string | null;
+  links: string | null;
+  created_at: string;
+  current_version: ReportVersion;
+  version_count: number;
+}

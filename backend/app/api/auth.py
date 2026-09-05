@@ -28,7 +28,7 @@ router = APIRouter(
 
 def _set_auth_cookies(response: Response, user: User) -> None:
     response.set_cookie(
-        key="acces_token",
+        key="access_token",
         value=create_access_token(
             user_id=user.user_id,
             role=user.role.value,
