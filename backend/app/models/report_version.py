@@ -1,13 +1,21 @@
 from datetime import datetime, timezone
 
-from sqlalchemy import DateTime, ForeignKey, Integer
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import DateTime, ForeignKey, Integer, UniqueConstraint
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
 
 
 class ReportVersion(Base):
     __tablename__ = "report_versions"
+
+    __table_args__ = (
+        UniqueConstraint(
+            "report_id",
+            "version_number",
+            name="uq_report_versions_report_number",
+        ),
+    )
 
     version_id: Mapped[int] = mapped_column(
         primary_key=True,
@@ -35,4 +43,35 @@ class ReportVersion(Base):
         DateTime,
         default=lambda: datetime.now(timezone.utc),
         nullable=False,
+    )
+    
+    # relationships
+    
+    report: Mapped["WeeklyReport"] = relationship(
+        back_populates="versions",
+    )
+
+    tasks: Mapped[list["ReportTask"]] = relationship(
+        back_populates="version",
+        cascade="all, delete-orphan",
+    )
+
+    next_week_tasks: Mapped[list["NextWeekTask"]] = relationship(
+        back_populates="version",
+        cascade="all, delete-orphan",
+    )
+
+    blockers: Mapped[list["ReportBlocker"]] = relationship(
+        back_populates="version",
+        cascade="all, delete-orphan",
+    )
+
+    achievements: Mapped[list["ReportAchievement"]] = relationship(
+        back_populates="version",
+        cascade="all, delete-orphan",
+    )
+
+    hours: Mapped[list["ReportHours"]] = relationship(
+        back_populates="version",
+        cascade="all, delete-orphan",
     )

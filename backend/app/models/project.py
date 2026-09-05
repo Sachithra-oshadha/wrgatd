@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 
 from sqlalchemy import Boolean, DateTime, String, Text
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
 
@@ -42,4 +42,15 @@ class Project(Base):
         default=lambda: datetime.now(timezone.utc),
         onupdate=lambda: datetime.now(timezone.utc),
         nullable=False,
+    )
+    
+    # relationship
+    
+    members: Mapped[list["ProjectMember"]] = relationship(
+        back_populates="project",
+        cascade="all, delete-orphan",
+    )
+
+    reports: Mapped[list["WeeklyReport"]] = relationship(
+        back_populates="project",
     )

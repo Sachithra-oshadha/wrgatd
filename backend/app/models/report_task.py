@@ -60,3 +60,9 @@ class ReportTask(Base):
         Text,
         nullable=True,
     )
+    
+    # relationship
+    
+    version: Mapped["ReportVersion"] = relationship(
+        back_populates="tasks",
+    )

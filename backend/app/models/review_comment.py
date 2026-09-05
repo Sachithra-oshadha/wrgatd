@@ -46,3 +46,15 @@ class ReviewComments(Base):
         default=lambda: datetime.now(timezone.utc),
         nullable=False,
     )
+    
+    # relationship
+    
+    report: Mapped["WeeklyReport"] = relationship(
+        back_populates="reviews",
+    )
+
+    version: Mapped["ReportVersion"] = relationship()
+
+    reviewer: Mapped["User"] = relationship(
+        back_populates="reviews_given",
+    )

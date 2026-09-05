@@ -1,13 +1,28 @@
 from datetime import date, datetime, timezone
 
-from sqlalchemy import Date, DateTime, ForeignKey, String
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import Date, DateTime, ForeignKey, Index, String, Text, UniqueConstraint
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
 
 
 class WeeklyReport(Base):
     __tablename__ = "weekly_reports"
+    __table_args__ = (
+        UniqueConstraint(
+            "user_id",
+            "week_start",
+            name="uq_weekly_reports_user_week",
+        ),
+        Index(
+            "ix_weekly_reports_status",
+            "status",
+        ),
+        Index(
+            "ix_weekly_reports_week_start",
+            "week_start",
+        ),
+    )
 
     report_id: Mapped[int] = mapped_column(
         primary_key=True,
@@ -42,6 +57,16 @@ class WeeklyReport(Base):
         default="DRAFT",
     )
 
+    notes: Mapped[str | None] = mapped_column(
+        Text,
+        nullable=True,
+    )
+
+    links: Mapped[str | None] = mapped_column(
+        Text,
+        nullable=True,
+    )
+
     submitted_at: Mapped[datetime | None] = mapped_column(
         DateTime,
         nullable=True,
@@ -63,4 +88,26 @@ class WeeklyReport(Base):
         default=lambda: datetime.now(timezone.utc),
         onupdate=lambda: datetime.now(timezone.utc),
         nullable=False,
+    )
+    
+    # relationships
+    
+    user: Mapped["User"] = relationship(
+        back_populates="reports",
+    )
+
+    project: Mapped["Project"] = relationship(
+        back_populates="reports",
+    )
+
+    versions: Mapped[list["ReportVersion"]] = relationship(
+        back_populates="report",
+        cascade="all, delete-orphan",
+        order_by="ReportVersion.version_number",
+    )
+
+    reviews: Mapped[list["ReviewComments"]] = relationship(
+        back_populates="report",
+        cascade="all, delete-orphan",
+        order_by="ReviewComments.created_at",
     )

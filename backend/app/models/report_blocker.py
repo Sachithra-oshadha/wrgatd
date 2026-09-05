@@ -1,5 +1,5 @@
 from sqlalchemy import Boolean, ForeignKey, Text
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
 
@@ -27,4 +27,10 @@ class ReportBlocker(Base):
         Boolean,
         nullable=False,
         default=False,
+    )
+    
+    # relationship
+        
+    version: Mapped["ReportVersion"] = relationship(
+        back_populates="blockers",
     )

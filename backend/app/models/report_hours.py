@@ -29,3 +29,9 @@ class ReportHours(Base):
         Numeric(6, 2),
         nullable=False,
     )
+    
+    # relationship
+    
+    version: Mapped["ReportVersion"] = relationship(
+        back_populates="hours",
+    )

@@ -1,9 +1,16 @@
 from datetime import datetime, timezone
+from enum import Enum
 
-from sqlalchemy import Boolean, DateTime, String
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import Boolean, DateTime, Enum as SQLEnum, String
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
+
+
+class UserRole(str, Enum):
+    TEAM_MEMBER = "TEAM_MEMBER"
+    ADMIN = "ADMIN"
+    MANAGER = "MANAGER"
 
 
 class User(Base):
@@ -36,10 +43,10 @@ class User(Base):
         nullable=False,
     )
 
-    role: Mapped[str] = mapped_column(
-        String(20),
+    role: Mapped[UserRole] = mapped_column(
+        SQLEnum(UserRole, name="user_role"),
         nullable=False,
-        default="TEAM_MEMBER",
+        default=UserRole.TEAM_MEMBER,
     )
 
     is_active: Mapped[bool] = mapped_column(
@@ -59,4 +66,21 @@ class User(Base):
         default=lambda: datetime.now(timezone.utc),
         onupdate=lambda: datetime.now(timezone.utc),
         nullable=False,
+    )
+    
+    # relationship
+    
+    reports: Mapped[list["WeeklyReport"]] = relationship(
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
+
+    project_memberships: Mapped[list["ProjectMember"]] = relationship(
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
+
+    reviews_given: Mapped[list["ReviewComments"]] = relationship(
+        back_populates="reviewer",
+        cascade="all, delete-orphan",
     )

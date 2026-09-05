@@ -1,5 +1,5 @@
 from sqlalchemy import ForeignKey, String, Text
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
 
@@ -27,4 +27,10 @@ class NextWeekTask(Base):
         String(20),
         nullable=False,
         default="MEDIUM",
+    )
+    
+    # relationship
+    
+    version: Mapped["ReportVersion"] = relationship(
+        back_populates="next_week_tasks",
     )
