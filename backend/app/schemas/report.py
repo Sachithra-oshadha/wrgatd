@@ -246,6 +246,23 @@ class WeeklyReportSummary(BaseModel):
     current_version_number: int = 1
 
 
+class ReviewRequest(BaseModel):
+    comment: str | None = Field(default=None, max_length=5000)
+
+
+class ReviewCommentResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    review_id: int
+    report_id: int
+    version_id: int
+    version_number: int = 1
+    action: str
+    comment: str | None
+    created_at: datetime
+
+    reviewer: UserResponse
+
 class WeeklyReportResponse(WeeklyReportSummary):
     notes: str | None = None
     links: str | None = None
@@ -253,7 +270,7 @@ class WeeklyReportResponse(WeeklyReportSummary):
 
     current_version: ReportVersionResponse
     version_count: int = 1
-
+    latest_review: ReviewCommentResponse | None = None
 
 class WeeklyReportListResponse(BaseModel):
     items: list[WeeklyReportSummary]

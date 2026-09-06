@@ -10,6 +10,8 @@ import { StatusBadge } from "@/components/app/status-badge";
 
 import { useReport } from "@/hooks/use-reports";
 import { formatWeekRange } from "@/lib/weeks";
+import { isEditable } from "@/lib/constants";
+import { CorrectionBanner } from "@/components/app/correction-banner";
 
 
 export default function EditReportPage({
@@ -36,8 +38,7 @@ export default function EditReportPage({
     );
   }
 
-  const editable =
-    report.status === "DRAFT" || report.status === "NEEDS_CORRECTION";
+  const editable = isEditable(report.status);
 
   return (
     <>
@@ -46,6 +47,14 @@ export default function EditReportPage({
         description={`${formatWeekRange(report.week_start, report.week_end)} — ${report.project.name}`}
         action={<StatusBadge status={report.status} />}
       />
+      
+      {report.status === "NEEDS_CORRECTION" && (
+        <CorrectionBanner
+          reportId={report.report_id}
+          review={report.latest_review ?? null}
+          showEditButton={false}
+        />
+      )}
 
       {editable ? (
         <ReportForm report={report} />

@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useForm, useWatch } from "react-hook-form";
+import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 
@@ -16,6 +17,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogDescription, 
+  DialogFooter, 
+  DialogHeader, 
+  DialogTitle 
+} from "../ui/dialog";
 
 import { WeekPicker } from "@/components/app/week-picker";
 import { TaskTable } from "@/components/app/task-table";
@@ -25,7 +34,7 @@ import { AchievementList } from "@/components/app/achievement-list";
 import { HoursTable } from "@/components/app/hours-table";
 
 import { useProjects } from "@/hooks/use-projects";
-import { useCreateReport, useUpdateReport } from "@/hooks/use-reports";
+import { useCreateReport, useUpdateReport, useSubmitReport } from "@/hooks/use-reports";
 import {
   reportFormSchema,
   type ReportFormValues,
@@ -155,6 +164,55 @@ export function ReportForm({
     router.replace(`/reports/${created.report_id}/edit`);
   }
 
+  const submitReport = useSubmitReport();
+  const [confirmOpen, setConfirmOpen] = useState(false);
+
+  const status = report?.status;
+  const isCorrection = status === "NEEDS_CORRECTION";
+
+  async function handleSubmitForReview() {
+    const id = report?.report_id;
+
+    if (!id) {
+      toast.error("Save the draft before submitting");
+      setConfirmOpen(false);
+      return;
+    }
+
+    // Always save first, so what the manager reviews is what is on
+    // screen. `saved` is set inside the handler rather than read from
+    // `errors` afterwards: `errors` here is the value captured when this
+    // callback was created, so a validation failure raised by this very
+    // call would not be visible in it, and we would go on to submit an
+    // unsaved report.
+    let saved = false;
+
+    try {
+      await handleSubmit(async (values) => {
+        await onSubmit(values);
+        saved = true;
+      })();
+    } catch {
+      // the mutation's onError already surfaced a toast
+      saved = false;
+    }
+
+    if (!saved) {
+      setConfirmOpen(false);
+      return;
+    }
+
+    try {
+      await submitReport.mutateAsync(id);
+    } catch {
+      setConfirmOpen(false);
+      return;
+    }
+
+    setConfirmOpen(false);
+    router.push(`/reports/${id}`);
+  }
+
 
   return (
     <form
@@ -278,7 +336,7 @@ export function ReportForm({
       </Card>
 
       {/* Sticky action bar */}
-      <div className="fixed inset-x-0 bottom-0 z-10 border-t bg-card px-6 py-3 md:left-56">
+       <div className="fixed inset-x-0 bottom-0 z-10 border-t bg-card px-6 py-3 md:left-56">
         <div className="flex items-center justify-end gap-3">
           <span className="mr-auto text-sm text-subtle">
             {isDirty ? "Unsaved changes" : "All changes saved"}
@@ -292,13 +350,53 @@ export function ReportForm({
             Cancel
           </Button>
 
-          <Button type="submit" disabled={isSubmitting}>
+          <Button type="submit" variant="outline" disabled={isSubmitting}>
             {isSubmitting ? "Saving..." : "Save Draft"}
           </Button>
 
-          {/* Submit for Review is added in M5 */}
+          <Button
+            type="button"
+            disabled={!report || submitReport.isPending}
+            onClick={() => setConfirmOpen(true)}
+          >
+            {isCorrection ? "Resubmit for Review" : "Submit for Review"}
+          </Button>
         </div>
       </div>
+
+      <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {isCorrection ? "Resubmit this report?" : "Submit for review?"}
+            </DialogTitle>
+
+            <DialogDescription>
+              {isCorrection
+                ? "Your corrections go to your manager as a new version. The version they already reviewed is kept unchanged."
+                : "Your manager will be able to review this report. You will not be able to edit it again unless changes are requested."}
+            </DialogDescription>
+          </DialogHeader>
+
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setConfirmOpen(false)}
+            >
+              Keep editing
+            </Button>
+
+            <Button
+              type="button"
+              onClick={handleSubmitForReview}
+              disabled={submitReport.isPending}
+            >
+              {submitReport.isPending ? "Submitting..." : "Submit"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
     </form>
   );

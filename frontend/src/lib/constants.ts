@@ -1,4 +1,4 @@
-import type { Priority, TaskStatus } from "@/lib/types";
+import type { Priority, TaskStatus, ReportStatus } from "@/lib/types";
 
 export const PRIORITIES: { value: Priority; label: string }[] = [
   { value: "LOW", label: "Low" },
@@ -22,3 +22,12 @@ export const HOUR_CATEGORIES = [
   "Research",
   "Other",
 ] as const;
+
+export const EDITABLE_STATUSES: ReportStatus[] = [
+  "DRAFT",
+  "NEEDS_CORRECTION",
+];
+
+export function isEditable(status: ReportStatus): boolean {
+  return EDITABLE_STATUSES.includes(status);
+}

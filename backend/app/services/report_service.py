@@ -11,6 +11,7 @@ from app.models.report_blocker import ReportBlocker
 from app.models.report_hours import ReportHours
 from app.models.report_task import ReportTask
 from app.models.report_version import ReportVersion
+from app.models.review_comment import ReviewComments
 from app.models.user import User, UserRole
 from app.models.weekly_report import WeeklyReport
 from app.schemas.report import (
@@ -43,6 +44,12 @@ def _detail_options():
         ),
         selectinload(WeeklyReport.versions).selectinload(
             ReportVersion.hours
+        ),
+        selectinload(WeeklyReport.reviews).selectinload(
+            ReviewComments.reviewer
+        ),
+        selectinload(WeeklyReport.reviews).selectinload(
+            ReviewComments.version
         ),
     )
 
@@ -343,3 +350,76 @@ def list_reports(
         )
 
     return reports, total
+
+def fork_version(
+    db: Session,
+    report: WeeklyReport,
+) -> ReportVersion:
+
+    source = current_version(report)
+
+    next_number = (
+        db.scalar(
+            select(func.max(ReportVersion.version_number)).where(
+                ReportVersion.report_id == report.report_id
+            )
+        )
+        or 0
+    ) + 1
+
+    target = ReportVersion(
+        report_id=report.report_id,
+        version_number=next_number,
+    )
+
+    for task in source.tasks:
+        target.tasks.append(
+            ReportTask(
+                task_name=task.task_name,
+                priority=task.priority,
+                planned_percent=task.planned_percent,
+                actual_percent=task.actual_percent,
+                status=task.status,
+                time_planned=task.time_planned,
+                time_spent=task.time_spent,
+                deliverable=task.deliverable,
+            )
+        )
+
+    for item in source.next_week_tasks:
+        target.next_week_tasks.append(
+            NextWeekTask(
+                description=item.description,
+                priority=item.priority,
+            )
+        )
+
+    for blocker in source.blockers:
+        target.blockers.append(
+            ReportBlocker(
+                description=blocker.description,
+                is_key_issue=blocker.is_key_issue,
+            )
+        )
+
+    for achievement in source.achievements:
+        target.achievements.append(
+            ReportAchievement(
+                description=achievement.description,
+                is_key_achievement=achievement.is_key_achievement,
+            )
+        )
+
+    for entry in source.hours:
+        target.hours.append(
+            ReportHours(
+                task_type=entry.task_type,
+                hours=entry.hours,
+            )
+        )
+
+    report.versions.append(target)
+    db.flush()
+
+    return target
+

@@ -24,6 +24,7 @@ import { ProjectBadge } from "@/components/app/project-badge";
 import { useMyReports } from "@/hooks/use-reports";
 import { useProjects } from "@/hooks/use-projects";
 import { formatWeekRange } from "@/lib/weeks";
+import { isEditable } from "@/lib/constants";
 import type { ReportStatus } from "@/lib/types";
 
 
@@ -137,9 +138,7 @@ export default function ReportHistoryPage() {
 
               <TableBody>
                 {data.items.map((report) => {
-                  const editable =
-                    report.status === "DRAFT" ||
-                    report.status === "NEEDS_CORRECTION";
+                  const editable = isEditable(report.status);
 
                   return (
                     <TableRow key={report.report_id}>

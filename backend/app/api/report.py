@@ -13,17 +13,41 @@ from app.schemas.report import (
     WeeklyReportListResponse,
     WeeklyReportResponse,
     WeeklyReportUpdate,
+    ReviewRequest
 )
-from app.services import report_service
+from app.services import report_service, workflow_service
 
 router = APIRouter(
     prefix="/reports",
     tags=["Reports"],
 )
 
+def _review_dict(review, version_number: int) -> dict:
+    return {
+        "review_id": review.review_id,
+        "report_id": review.report_id,
+        "version_id": review.version_id,
+        "version_number": version_number,
+        "action": review.action,
+        "comment": review.comment,
+        "created_at": review.created_at,
+        "reviewer": review.reviewer,
+    }
+
+
 def _to_detail(report) -> dict:
 
     version = report_service.current_version(report)
+    latest = report.reviews[-1] if report.reviews else None
+
+    # read the reviewed version's number rather than letting the schema
+    # default to 1 - after a correction the review points at v1 while the
+    # current version is v2
+    latest_review = (
+        _review_dict(latest, latest.version.version_number)
+        if latest
+        else None
+    )
 
     return {
         "report_id": report.report_id,
@@ -41,6 +65,7 @@ def _to_detail(report) -> dict:
         "current_version": version,
         "current_version_number": version.version_number,
         "version_count": len(report.versions),
+        "latest_review": latest_review,
     }
 
 @router.post(
@@ -163,3 +188,52 @@ def delete_report(
     report_service.delete_report(db, report_id, current_user)
 
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+@router.post("/{report_id}/submit", response_model=WeeklyReportResponse)
+def submit_report(
+    report_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    report = workflow_service.submit(db, report_id, current_user)
+
+    return _to_detail(report)
+
+
+@router.post("/{report_id}/approve", response_model=WeeklyReportResponse)
+def approve_report(
+    report_id: int,
+    data: ReviewRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_manager),
+):
+    report = workflow_service.review(
+        db,
+        report_id,
+        current_user,
+        workflow_service.Action.APPROVE,
+        data.comment,
+    )
+
+    return _to_detail(report)
+
+
+@router.post(
+    "/{report_id}/request-changes",
+    response_model=WeeklyReportResponse,
+)
+def request_changes(
+    report_id: int,
+    data: ReviewRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_manager),
+):
+    report = workflow_service.review(
+        db,
+        report_id,
+        current_user,
+        workflow_service.Action.REQUEST_CHANGES,
+        data.comment,
+    )
+
+    return _to_detail(report)

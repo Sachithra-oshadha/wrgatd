@@ -118,3 +118,65 @@ export function useDeleteReport() {
     onError: (error: Error) => toast.error(error.message),
   });
 }
+
+export function useSubmitReport() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (reportId: number) =>
+      apiFetch<Report>(`/reports/${reportId}/submit`, {
+        method: "POST",
+      }),
+    onSuccess: (report) => {
+      queryClient.setQueryData(
+        queryKeys.reports.detail(report.report_id),
+        report
+      );
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.reports.all,
+      });
+      toast.success("Report submitted for review");
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+}
+
+
+export function useReviewReport() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      reportId,
+      action,
+      comment,
+    }: {
+      reportId: number;
+      action: "approve" | "request-changes";
+      comment?: string;
+    }) =>
+      apiFetch<Report>(`/reports/${reportId}/${action}`, {
+        method: "POST",
+        body: JSON.stringify({ comment: comment ?? null }),
+      }),
+    onSuccess: (report, variables) => {
+      queryClient.setQueryData(
+        queryKeys.reports.detail(report.report_id),
+        report
+      );
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.reports.all,
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.dashboard.activity,
+      });
+
+      toast.success(
+        variables.action === "approve"
+          ? "Report approved"
+          : "Changes requested"
+      );
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+}

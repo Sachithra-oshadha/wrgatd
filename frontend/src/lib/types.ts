@@ -122,4 +122,16 @@ export interface Report extends ReportSummary {
   created_at: string;
   current_version: ReportVersion;
   version_count: number;
+  latest_review: ReviewComment | null;
+}
+
+export interface ReviewComment {
+  review_id: number;
+  report_id: number;
+  version_id: number;
+  version_number: number;
+  action: ReviewAction;
+  comment: string | null;
+  created_at: string;
+  reviewer: User;
 }
