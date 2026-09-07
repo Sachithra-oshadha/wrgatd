@@ -154,3 +154,72 @@ export interface VersionHistory {
   report_id: number;
   versions: VersionHistoryEntry[];
 }
+
+export interface PersonalSummary {
+  week_start: string;
+  week_end: string;
+  current_week_report: ReportSummary | null;
+  total_reports: number;
+  draft_count: number;
+  submitted_count: number;
+  needs_correction_count: number;
+  approved_count: number;
+  approval_rate: number;
+  needs_correction_reports: ReportSummary[];
+}
+
+export interface TeamSummary {
+  week_start: string;
+  week_end: string;
+  expected_reports: number;
+  submitted_count: number;
+  draft_count: number;
+  approved_count: number;
+  needs_correction_count: number;
+  awaiting_review_count: number;
+  not_started_count: number;
+  compliance_percent: number;
+  open_blockers: number;
+}
+
+export interface TasksTrendPoint {
+  week_start: string;
+  completed_tasks: number;
+}
+
+export interface WorkloadPoint {
+  project: string;
+  hours: number;
+  report_count: number;
+}
+
+export interface HoursPoint {
+  task_type: string;
+  hours: number;
+}
+
+export interface MemberSubmission {
+  user_id: number;
+  first_name: string;
+  last_name: string;
+  report_id: number | null;
+  project: string | null;
+  status: ReportStatus | "NOT_STARTED" | "LATE";
+}
+
+export interface ActivityEvent {
+  report_id: number;
+  at: string;
+  kind: "SUBMITTED" | "APPROVED" | "REQUEST_CHANGES";
+  actor: string;
+}
+
+export interface MemberStats {
+  total_reports: number;
+  submitted_count: number;
+  approved_count: number;
+  needs_correction_count: number;
+  draft_count: number;
+  expected_reports: number;
+  compliance_percent: number;
+}

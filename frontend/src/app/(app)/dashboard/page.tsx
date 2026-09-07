@@ -1,64 +1,138 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { Plus } from "lucide-react";
 
-import { apiFetch } from "@/lib/api";
-import type { User } from "@/lib/types";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+
+import { PageHeader } from "@/components/app/page-header";
+import { MetricCard } from "@/components/app/metric-card";
+import { StatusBadge } from "@/components/app/status-badge";
+import { CorrectionBanner } from "@/components/app/correction-banner";
+import { TasksTrendChart } from "@/components/charts/tasks-trend-chart";
+import { TeamDashboard } from "@/components/app/team-dashboard";
+
+import { useAuth } from "@/hooks/use-auth";
+import { usePersonalDashboard } from "@/hooks/use-dashboard";
+import { formatWeekRange } from "@/lib/weeks";
+import { isEditable } from "@/lib/constants";
 
 
 export default function DashboardPage() {
-  const router = useRouter();
-  const [user, setUser] = useState<User | null>(null);
-  const [error, setError] = useState("");
+  const { user, isManager } = useAuth();
+  const { data, isPending } = usePersonalDashboard();
 
-  useEffect(() => {
-    apiFetch<User>("/auth/me")
-      .then(setUser)
-      .catch((err) =>
-        setError(err instanceof Error ? err.message : "Failed to load")
-      );
-  }, []);
-
-  async function handleLogout() {
-    await apiFetch("/auth/logout", { method: "POST" });
-    router.push("/login");
-    router.refresh();
+  if (isPending || !data) {
+    return (
+      <div className="space-y-4">
+        <Skeleton className="h-10 w-64" />
+        <Skeleton className="h-32 w-full" />
+        <Skeleton className="h-64 w-full" />
+      </div>
+    );
   }
 
+  const report = data.current_week_report;
+
   return (
-    <main className="min-h-screen bg-[#F4F6F9] p-8">
-      <div className="mx-auto max-w-3xl rounded-xl bg-white p-8 shadow">
+    <>
+      <PageHeader
+        title={`Welcome back, ${user?.first_name ?? ""}`}
+        description={`Week of ${formatWeekRange(data.week_start, data.week_end)}`}
+        action={
+          !report && (
+            <Button asChild>
+              <Link href="/reports/new">
+                <Plus className="mr-2 h-4 w-4" />
+                Create this week's report
+              </Link>
+            </Button>
+          )
+        }
+      />
 
-        <h1 className="mb-4 text-2xl font-bold text-[#222222]">
-          Dashboard
-        </h1>
+      {data.needs_correction_reports.map((item) => (
+        <CorrectionBanner
+          key={item.report_id}
+          reportId={item.report_id}
+          review={null}
+        />
+      ))}
 
-        {error && (
-          <p className="text-sm text-[#D63939]">{error}</p>
-        )}
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle className="text-base">This week</CardTitle>
+        </CardHeader>
 
-        {user && (
-          <div className="space-y-1 text-sm text-[#333333]">
-            <p>
-              Signed in as{" "}
-              <strong>
-                {user.first_name} {user.last_name}
-              </strong>
-            </p>
-            <p className="text-[#666666]">{user.email}</p>
-            <p className="text-[#666666]">Role: {user.role}</p>
-          </div>
-        )}
+        <CardContent>
+          {report ? (
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <p className="font-medium text-body">
+                  {report.project.name}
+                </p>
+                <p className="text-sm text-subtle">
+                  {formatWeekRange(report.week_start, report.week_end)}
+                </p>
+              </div>
 
-        <button
-          onClick={handleLogout}
-          className="mt-6 rounded-md border px-4 py-2 text-sm font-medium text-[#333333] hover:bg-[#F4F6F9]"
-        >
-          Sign out
-        </button>
+              <div className="flex items-center gap-3">
+                <StatusBadge status={report.status} />
 
+                <Button asChild variant="outline" size="sm">
+                  <Link
+                    href={
+                      isEditable(report.status)
+                        ? `/reports/${report.report_id}/edit`
+                        : `/reports/${report.report_id}`
+                    }
+                  >
+                    {isEditable(report.status) ? "Continue" : "View"}
+                  </Link>
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <p className="text-sm text-subtle">
+                You have not started this week's report.
+              </p>
+
+              <Button asChild size="sm">
+                <Link href="/reports/new">Start now</Link>
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <MetricCard label="Reports filed" value={data.total_reports} />
+
+        <MetricCard
+          label="Approved"
+          value={data.approved_count}
+          tone="approved"
+        />
+
+        <MetricCard
+          label="Needs correction"
+          value={data.needs_correction_count}
+          tone={data.needs_correction_count > 0 ? "correction" : "default"}
+        />
+
+        <MetricCard
+          label="Approval rate"
+          value={`${data.approval_rate}%`}
+          hint="Approved as a share of all your reports"
+        />
       </div>
-    </main>
+
+      <TasksTrendChart userId={user?.user_id} />
+
+      {isManager && <TeamDashboard compact />}
+    </>
   );
 }

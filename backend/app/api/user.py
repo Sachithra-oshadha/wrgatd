@@ -1,9 +1,10 @@
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Depends, Query, status, HTTPException
 from sqlalchemy.orm import Session
 
-from app.api.dependencies import require_admin
+from app.api.dependencies import get_current_user, require_admin, require_manager
 from app.core.database import get_db
 from app.models.user import User, UserRole
+from app.schemas.auth import UserResponse
 from app.schemas.user import (
     UserCreateRequest,
     UserDetailResponse,
@@ -11,7 +12,8 @@ from app.schemas.user import (
     UserRoleUpdateRequest,
     UserUpdateRequest,
 )
-from app.services import user_service
+from app.schemas.dashboard import MemberStats
+from app.services import user_service, dashboard_service
 
 
 router = APIRouter(
@@ -46,6 +48,19 @@ def list_users(
         "page": page,
         "page_size": page_size,
     }
+
+@router.get("/directory", response_model=list[UserResponse])
+def directory(
+    db: Session = Depends(get_db),
+    _: User = Depends(require_manager),
+):
+    """Active users, name and email only. Manager-visible."""
+
+    users, _total = user_service.list_users(
+        db, is_active=True, page=1, page_size=500
+    )
+
+    return users
 
 
 @router.get("/{user_id}", response_model=UserDetailResponse)
@@ -97,3 +112,23 @@ def deactivate_user(
     current_user: User = Depends(require_admin),
 ):
     return user_service.deactivate_user(db, user_id, current_user)
+
+@router.get("/{user_id}/stats", response_model=MemberStats)
+def user_stats(
+    user_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    if (
+        user_id != current_user.user_id
+        and current_user.role.value not in ("MANAGER", "ADMIN")
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You can only view your own statistics",
+        )
+
+    user_service.get_user(db, user_id)
+
+    return dashboard_service.member_stats(db, user_id)
+
