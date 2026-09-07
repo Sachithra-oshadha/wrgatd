@@ -15,6 +15,8 @@ import type {
   Report,
   ReportStatus,
   ReportSummary,
+  ReviewComment,
+  VersionHistory,
 } from "@/lib/types";
 
 
@@ -170,6 +172,13 @@ export function useReviewReport() {
       queryClient.invalidateQueries({
         queryKey: queryKeys.dashboard.activity,
       });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.reports.versions(report.report_id),
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.reports.reviews(report.report_id),
+      });
+
 
       toast.success(
         variables.action === "approve"
@@ -179,4 +188,41 @@ export function useReviewReport() {
     },
     onError: (error: Error) => toast.error(error.message),
   });
+}
+
+export function useVersionHistory(reportId: number | null) {
+  return useQuery({
+    queryKey: queryKeys.reports.versions(reportId ?? 0),
+    queryFn: () =>
+      apiFetch<VersionHistory>(`/reports/${reportId}/versions`),
+    enabled: reportId !== null,
+  });
+}
+
+
+export function useReportReviews(reportId: number | null) {
+  return useQuery({
+    queryKey: queryKeys.reports.reviews(reportId ?? 0),
+    queryFn: () =>
+      apiFetch<ReviewComment[]>(`/reports/${reportId}/reviews`),
+    enabled: reportId !== null,
+  });
+}
+
+export function useTeamReports(filters: TeamReportFilters = {}) {
+  return useQuery({
+    queryKey: queryKeys.reports.team(filters),
+    queryFn: () =>
+      apiFetch<Paginated<ReportSummary>>(
+        `/reports/team${toQuery(filters)}`
+      ),
+  });
+}
+
+export interface TeamReportFilters {
+  user_id?: number;
+  project_id?: number;
+  status?: ReportStatus;
+  week_start?: string;
+  page?: number;
 }

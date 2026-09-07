@@ -277,3 +277,23 @@ class WeeklyReportListResponse(BaseModel):
     total: int
     page: int
     page_size: int
+
+class VersionHistoryEntry(BaseModel):
+    version_id: int
+    version_number: int
+    submitted_at: datetime | None
+    created_at: datetime
+    is_current: bool
+
+    tasks: list[TaskResponse] = Field(default_factory=list)
+    next_week_tasks: list[NextWeekTaskResponse] = Field(default_factory=list)
+    blockers: list[BlockerResponse] = Field(default_factory=list)
+    achievements: list[AchievementResponse] = Field(default_factory=list)
+    hours: list[HoursResponse] = Field(default_factory=list)
+
+    review: ReviewCommentResponse | None = None
+
+
+class VersionHistoryResponse(BaseModel):
+    report_id: int
+    versions: list[VersionHistoryEntry]

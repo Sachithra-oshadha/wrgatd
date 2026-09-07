@@ -135,3 +135,22 @@ export interface ReviewComment {
   created_at: string;
   reviewer: User;
 }
+
+export interface VersionHistoryEntry {
+  version_id: number;
+  version_number: number;
+  submitted_at: string | null;
+  created_at: string;
+  is_current: boolean;
+  tasks: ReportTask[];
+  next_week_tasks: NextWeekTask[];
+  blockers: ReportBlocker[];
+  achievements: ReportAchievement[];
+  hours: ReportHours[];
+  review: ReviewComment | null;
+}
+
+export interface VersionHistory {
+  report_id: number;
+  versions: VersionHistoryEntry[];
+}

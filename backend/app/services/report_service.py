@@ -423,3 +423,70 @@ def fork_version(
 
     return target
 
+def list_versions(
+    db: Session,
+    report_id: int,
+) -> list[ReportVersion]:
+
+    return list(
+        db.scalars(
+            select(ReportVersion)
+            .where(ReportVersion.report_id == report_id)
+            .options(
+                selectinload(ReportVersion.tasks),
+                selectinload(ReportVersion.next_week_tasks),
+                selectinload(ReportVersion.blockers),
+                selectinload(ReportVersion.achievements),
+                selectinload(ReportVersion.hours),
+            )
+            .order_by(ReportVersion.version_number)
+        ).all()
+    )
+
+
+def get_version(
+    db: Session,
+    report_id: int,
+    version_number: int,
+) -> ReportVersion:
+
+    version = db.scalar(
+        select(ReportVersion)
+        .where(
+            ReportVersion.report_id == report_id,
+            ReportVersion.version_number == version_number,
+        )
+        .options(
+            selectinload(ReportVersion.tasks),
+            selectinload(ReportVersion.next_week_tasks),
+            selectinload(ReportVersion.blockers),
+            selectinload(ReportVersion.achievements),
+            selectinload(ReportVersion.hours),
+        )
+    )
+
+    if not version:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Version not found",
+        )
+
+    return version
+
+
+def list_reviews(
+    db: Session,
+    report_id: int,
+) -> list[ReviewComments]:
+
+    return list(
+        db.scalars(
+            select(ReviewComments)
+            .where(ReviewComments.report_id == report_id)
+            .options(
+                selectinload(ReviewComments.reviewer),
+                selectinload(ReviewComments.version),
+            )
+            .order_by(ReviewComments.created_at)
+        ).all()
+    )

@@ -13,7 +13,9 @@ from app.schemas.report import (
     WeeklyReportListResponse,
     WeeklyReportResponse,
     WeeklyReportUpdate,
-    ReviewRequest
+    ReviewRequest,
+    ReviewCommentResponse,
+    VersionHistoryResponse,
 )
 from app.services import report_service, workflow_service
 
@@ -237,3 +239,72 @@ def request_changes(
     )
 
     return _to_detail(report)
+
+@router.get(
+    "/{report_id}/versions",
+    response_model=VersionHistoryResponse,
+)
+def list_versions(
+    report_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    report = report_service.get_report(db, report_id)
+    report_service.assert_can_read(report, current_user)
+
+    versions = report_service.list_versions(db, report_id)
+    reviews = report_service.list_reviews(db, report_id)
+
+    reviews_by_version = {
+        review.version_id: review for review in reviews
+    }
+
+    current_id = report_service.current_version(report).version_id
+
+    entries = []
+
+    for version in versions:
+        review = reviews_by_version.get(version.version_id)
+
+        entries.append(
+            {
+                "version_id": version.version_id,
+                "version_number": version.version_number,
+                "submitted_at": version.submitted_at,
+                "created_at": version.created_at,
+                "is_current": version.version_id == current_id,
+                "tasks": version.tasks,
+                "next_week_tasks": version.next_week_tasks,
+                "blockers": version.blockers,
+                "achievements": version.achievements,
+                "hours": version.hours,
+                "review": (
+                    _review_dict(review, version.version_number)
+                    if review
+                    else None
+                ),
+            }
+        )
+
+    return {
+        "report_id": report_id,
+        "versions": entries,
+    }
+
+
+@router.get(
+    "/{report_id}/reviews",
+    response_model=list[ReviewCommentResponse],
+)
+def list_reviews(
+    report_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    report = report_service.get_report(db, report_id)
+    report_service.assert_can_read(report, current_user)
+
+    return [
+        _review_dict(review, review.version.version_number)
+        for review in report_service.list_reviews(db, report_id)
+    ]
