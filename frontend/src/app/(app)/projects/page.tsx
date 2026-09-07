@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { FolderKanban, Pencil, Plus, Trash2, Users } from "lucide-react";
+import { FolderKanban, Pencil, Plus, Search, Trash2, Users } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,6 +20,7 @@ import { EmptyState } from "@/components/app/empty-state";
 import { ErrorState } from "@/components/app/error-state";
 import { ProjectDialog } from "@/components/app/project-dialog";
 import { ProjectMembersDialog } from "@/components/app/project-members-dialog";
+import { ConfirmDialog } from "@/components/app/confirm-dialog";
 
 import { useAuth } from "@/hooks/use-auth";
 import {
@@ -36,6 +37,7 @@ export default function ProjectsPage() {
   const [editing, setEditing] = useState<Project | null>(null);
   const [creating, setCreating] = useState(false);
   const [managingMembers, setManagingMembers] = useState<Project | null>(null);
+  const [removing, setRemoving] = useState<Project | null>(null);
 
   const { data, isPending, isError, error, refetch } = useProjects({
     search: search || undefined,
@@ -59,11 +61,14 @@ export default function ProjectsPage() {
         }
       />
 
-      <div className="mb-4 max-w-sm">
+      <div className="relative mb-4 max-w-sm">
+        <Search className="pointer-events-none absolute top-1/2 left-2.5 h-4 w-4 -translate-y-1/2 text-faint" />
+
         <Input
           placeholder="Search projects..."
           value={search}
           onChange={(event) => setSearch(event.target.value)}
+          className="pl-8"
         />
       </div>
 
@@ -101,7 +106,7 @@ export default function ProjectsPage() {
                 <TableHead>Project</TableHead>
                 <TableHead className="w-28">Members</TableHead>
                 <TableHead className="w-28">Status</TableHead>
-                <TableHead className="w-40 text-right">Actions</TableHead>
+                <TableHead className="w-56 text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
 
@@ -141,7 +146,7 @@ export default function ProjectsPage() {
                       onClick={() => setManagingMembers(project)}
                     >
                       <Users className="h-4 w-4" />
-                      <span className="sr-only">Manage members</span>
+                      Members
                     </Button>
 
                     {isManager && (
@@ -152,25 +157,17 @@ export default function ProjectsPage() {
                           onClick={() => setEditing(project)}
                         >
                           <Pencil className="h-4 w-4" />
-                          <span className="sr-only">Edit</span>
+                          Edit
                         </Button>
 
                         <Button
                           variant="ghost"
                           size="sm"
                           disabled={deactivate.isPending}
-                          onClick={() => {
-                            if (
-                              window.confirm(
-                                `Remove "${project.name}"? Projects with existing reports are deactivated rather than deleted.`
-                              )
-                            ) {
-                              deactivate.mutate(project.project_id);
-                            }
-                          }}
+                          onClick={() => setRemoving(project)}
                         >
                           <Trash2 className="h-4 w-4 text-status-late" />
-                          <span className="sr-only">Remove</span>
+                          <span className="text-status-late">Remove</span>
                         </Button>
                       </>
                     )}
@@ -197,6 +194,23 @@ export default function ProjectsPage() {
         project={managingMembers}
         onOpenChange={(open) => {
           if (!open) setManagingMembers(null);
+        }}
+      />
+
+      <ConfirmDialog
+        open={removing !== null}
+        onOpenChange={(open) => {
+          if (!open) setRemoving(null);
+        }}
+        title={`Remove "${removing?.name}"?`}
+        description="Projects with existing reports are deactivated rather than deleted, so their history stays intact."
+        confirmLabel="Remove"
+        destructive
+        loading={deactivate.isPending}
+        onConfirm={async () => {
+          if (!removing) return;
+          await deactivate.mutateAsync(removing.project_id);
+          setRemoving(null);
         }}
       />
     </>

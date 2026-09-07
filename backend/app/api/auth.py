@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Response, status, Cookie
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.api.dependencies import get_current_user #, require_manager
+from app.api.dependencies import get_current_user
 from app.core.config import settings
 from app.core.database import get_db
 from app.core.security import (
@@ -75,7 +75,7 @@ def register(
         last_name=data.last_name.strip(),
         email=data.email.lower(),
         password_hash=hash_password(data.password),
-        role="TEAM_MEMBER",
+        role=UserRole.TEAM_MEMBER,
         is_active=True,
     )
 
@@ -172,14 +172,3 @@ def get_me(
     current_user: User = Depends(get_current_user),
 ):
     return current_user
-
-"""  
-@router.get("/manager-test")
-def manager_test(
-    current_user: User = Depends(require_manager),
-):
-    return {
-        "message": "Manager access granted",
-        "user": current_user.email,
-    }
-"""

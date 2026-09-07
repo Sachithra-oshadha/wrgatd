@@ -15,6 +15,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
+import { RequiredMark } from "@/components/app/required-mark";
 import type { ReportFormValues } from "@/lib/validation/report";
 
 
@@ -78,7 +79,16 @@ export function AchievementList({
             {fields.map((field, index) => (
               <div key={field.id} className="flex items-start gap-3">
                 <div className="flex-1">
+                  <Label
+                    htmlFor={`achievement-${field.id}`}
+                    className="mb-1 text-xs font-normal text-subtle"
+                  >
+                    Description
+                    <RequiredMark />
+                  </Label>
+
                   <Textarea
+                    id={`achievement-${field.id}`}
                     rows={2}
                     placeholder="What went well this week?"
                     {...register(`achievements.${index}.description`)}

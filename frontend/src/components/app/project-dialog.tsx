@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
+import { RequiredMark } from "@/components/app/required-mark";
 import {
   useCreateProject,
   useUpdateProject,
@@ -98,7 +99,10 @@ export function ProjectDialog({
           noValidate
         >
           <div className="space-y-2">
-            <Label htmlFor="project-name">Name</Label>
+            <Label htmlFor="project-name">
+              Name
+              <RequiredMark />
+            </Label>
 
             <Input id="project-name" {...register("name")} />
 

@@ -129,7 +129,7 @@ export function ProjectMembersDialog({
                       removeMember.mutate(member.user.user_id)
                     }
                   >
-                    <X className="h-4 w-4" />
+                    <X className="h-4 w-4 text-status-late" />
                     <span className="sr-only">Remove</span>
                   </Button>
                 )}

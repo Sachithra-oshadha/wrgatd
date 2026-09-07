@@ -13,11 +13,11 @@ import {
 
 import { ChartCard } from "./chart-card";
 import { axisProps, chartTheme, tooltipStyle } from "./chart-theme";
-import { useWorkload } from "@/hooks/use-dashboard";
+import { useHoursBreakdown } from "@/hooks/use-dashboard";
 
 
 export function HoursChart({ weekStart }: { weekStart?: string }) {
-  const { data, isPending } = useWorkload({ week_start: weekStart });
+  const { data, isPending } = useHoursBreakdown({ week_start: weekStart });
 
   return (
     <ChartCard

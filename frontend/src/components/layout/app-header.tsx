@@ -16,7 +16,11 @@ export function AppHeader() {
   return (
     <header className="sticky top-0 z-20 flex h-14 items-center justify-between border-b bg-card px-4 lg:px-6">
 
-      <Link href="/dashboard" className="font-semibold text-heading">
+      <Link href="/dashboard" className="flex items-center gap-2.5 font-semibold text-heading">
+        <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-brand-primary to-brand-action text-sm font-bold text-white">
+          W
+        </span>
+
         Weekly Reports
       </Link>
 
@@ -30,7 +34,7 @@ export function AppHeader() {
                 {fullName(user)}
               </p>
               <p className="text-xs text-subtle">
-                {user.role.replace("_", " ").toLowerCase()}
+                {user.role.split("_").map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(" ")}
               </p>
             </div>
           </div>

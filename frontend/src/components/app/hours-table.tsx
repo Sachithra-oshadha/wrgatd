@@ -20,6 +20,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
+import { RequiredMark } from "@/components/app/required-mark";
 import { HOUR_CATEGORIES } from "@/lib/constants";
 import { requiredNumberField } from "@/lib/forms";
 import type { ReportFormValues } from "@/lib/validation/report";
@@ -85,7 +86,10 @@ export function HoursTable({
                 <TableHeader>
                   <TableRow>
                     <TableHead>Category</TableHead>
-                    <TableHead className="w-32">Hours</TableHead>
+                    <TableHead className="w-32">
+                      Hours
+                      <RequiredMark />
+                    </TableHead>
                     <TableHead className="w-12" />
                   </TableRow>
                 </TableHeader>

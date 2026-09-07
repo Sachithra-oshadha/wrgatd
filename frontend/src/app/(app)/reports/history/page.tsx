@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { FileText, Plus } from "lucide-react";
+import { Eye, FileText, Pencil, Plus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -173,6 +173,11 @@ export default function ReportHistoryPage() {
                                 : `/reports/${report.report_id}`
                             }
                           >
+                            {editable ? (
+                              <Pencil className="h-4 w-4" />
+                            ) : (
+                              <Eye className="h-4 w-4" />
+                            )}
                             {editable ? "Edit" : "View"}
                           </Link>
                         </Button>

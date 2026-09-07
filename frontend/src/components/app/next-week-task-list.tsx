@@ -10,8 +10,11 @@ import { Plus, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
+import { RequiredMark } from "@/components/app/required-mark";
+import { PRIORITY_SELECT_CLASSES } from "@/lib/priority-colors";
 import { PRIORITIES } from "@/lib/constants";
 import type { ReportFormValues } from "@/lib/validation/report";
 
@@ -60,7 +63,16 @@ export function NextWeekTaskList({
           fields.map((field, index) => (
             <div key={field.id} className="flex items-start gap-3">
               <div className="flex-1">
+                <Label
+                  htmlFor={`next-week-task-${field.id}`}
+                  className="mb-1 text-xs font-normal text-subtle"
+                >
+                  Description
+                  <RequiredMark />
+                </Label>
+
                 <Textarea
+                  id={`next-week-task-${field.id}`}
                   rows={2}
                   placeholder="What will you work on?"
                   {...register(`next_week_tasks.${index}.description`)}
@@ -74,8 +86,14 @@ export function NextWeekTaskList({
               </div>
 
               <select
-                {...register(`next_week_tasks.${index}.priority`)}
-                className="h-9 w-32 shrink-0 rounded-md border bg-card px-2 text-sm"
+                {...register(`next_week_tasks.${index}.priority`, {
+                  onChange: (event) => {
+                    event.target.dataset.priority = event.target.value;
+                  },
+                })}
+                defaultValue={field.priority}
+                data-priority={field.priority}
+                className={`w-32 shrink-0 ${PRIORITY_SELECT_CLASSES}`}
                 aria-label="Priority"
               >
                 {PRIORITIES.map((option) => (

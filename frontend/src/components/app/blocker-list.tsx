@@ -15,6 +15,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
+import { RequiredMark } from "@/components/app/required-mark";
 import type { ReportFormValues } from "@/lib/validation/report";
 
 
@@ -81,7 +82,16 @@ export function BlockerList({
             {fields.map((field, index) => (
               <div key={field.id} className="flex items-start gap-3">
                 <div className="flex-1">
+                  <Label
+                    htmlFor={`blocker-${field.id}`}
+                    className="mb-1 text-xs font-normal text-subtle"
+                  >
+                    Description
+                    <RequiredMark />
+                  </Label>
+
                   <Textarea
+                    id={`blocker-${field.id}`}
                     rows={2}
                     placeholder="What is holding you up?"
                     {...register(`blockers.${index}.description`)}

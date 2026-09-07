@@ -17,14 +17,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogDescription, 
-  DialogFooter, 
-  DialogHeader, 
-  DialogTitle 
-} from "../ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 import { WeekPicker } from "@/components/app/week-picker";
 import { TaskTable } from "@/components/app/task-table";
@@ -32,7 +32,10 @@ import { NextWeekTaskList } from "@/components/app/next-week-task-list";
 import { BlockerList } from "@/components/app/blocker-list";
 import { AchievementList } from "@/components/app/achievement-list";
 import { HoursTable } from "@/components/app/hours-table";
+import { RequiredMark } from "@/components/app/required-mark";
 
+import { cn } from "@/lib/utils";
+import { useSidebar } from "@/components/layout/sidebar-context";
 import { useProjects } from "@/hooks/use-projects";
 import { useCreateReport, useUpdateReport, useSubmitReport } from "@/hooks/use-reports";
 import {
@@ -110,6 +113,7 @@ export function ReportForm({
 }) {
   const router = useRouter();
   const isEdit = Boolean(report);
+  const { collapsed: sidebarCollapsed } = useSidebar();
 
   const projects = useProjects({ is_active: true });
   const create = useCreateReport();
@@ -227,7 +231,7 @@ export function ReportForm({
           <CardTitle>Reporting period</CardTitle>
         </CardHeader>
 
-        <CardContent className="flex flex-wrap items-end gap-6">
+        <CardContent className="flex flex-wrap items-start gap-6">
           <div className="space-y-2">
             <Label>Week</Label>
 
@@ -249,7 +253,10 @@ export function ReportForm({
           </div>
 
           <div className="min-w-56 space-y-2">
-            <Label>Project</Label>
+            <Label>
+              Project
+              <RequiredMark />
+            </Label>
 
             <Select
               value={projectId ? String(projectId) : ""}
@@ -336,7 +343,12 @@ export function ReportForm({
       </Card>
 
       {/* Sticky action bar */}
-       <div className="fixed inset-x-0 bottom-0 z-10 border-t bg-card px-6 py-3 md:left-56">
+      <div
+        className={cn(
+          "fixed inset-x-0 bottom-0 z-10 border-t bg-card px-6 py-3 transition-[left] duration-150",
+          sidebarCollapsed ? "md:left-16" : "md:left-56"
+        )}
+      >
         <div className="flex items-center justify-end gap-3">
           <span className="mr-auto text-sm text-subtle">
             {isDirty ? "Unsaved changes" : "All changes saved"}

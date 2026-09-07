@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Plus } from "lucide-react";
+import { Plus, FileText, CircleCheck, TriangleAlert, TrendingUp } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -109,24 +109,27 @@ export default function DashboardPage() {
       </Card>
 
       <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <MetricCard label="Reports filed" value={data.total_reports} />
+        <MetricCard label="Reports filed" value={data.total_reports} icon={FileText}/>
 
         <MetricCard
           label="Approved"
           value={data.approved_count}
           tone="approved"
+          icon={CircleCheck}
         />
 
         <MetricCard
           label="Needs correction"
           value={data.needs_correction_count}
           tone={data.needs_correction_count > 0 ? "correction" : "default"}
+          icon={TriangleAlert}
         />
 
         <MetricCard
           label="Approval rate"
           value={`${data.approval_rate}%`}
           hint="Approved as a share of all your reports"
+          icon={TrendingUp}
         />
       </div>
 

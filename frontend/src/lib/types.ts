@@ -51,8 +51,16 @@ export interface Paginated<T> {
   page_size: number;
 }
 
-export function fullName(user: Pick<User, "first_name" | "last_name">): string {
-    return `${user.first_name} ${user.last_name}`.trim();
+export function fullName(
+  user: Pick<User, "first_name" | "last_name">
+): string {
+  const firstName =
+    user.first_name.charAt(0).toUpperCase() + user.first_name.slice(1);
+
+  const lastName =
+    user.last_name.charAt(0).toUpperCase() + user.last_name.slice(1);
+
+  return `${firstName} ${lastName}`;
 }
 
 export interface ReportTask {

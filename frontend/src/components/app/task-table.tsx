@@ -20,6 +20,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
+import { RequiredMark } from "@/components/app/required-mark";
+import { PRIORITY_SELECT_CLASSES } from "@/lib/priority-colors";
 import { PRIORITIES, TASK_STATUSES } from "@/lib/constants";
 import { optionalNumberField } from "@/lib/forms";
 import type { ReportFormValues } from "@/lib/validation/report";
@@ -76,13 +78,16 @@ export function TaskTable({
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="min-w-52">Task</TableHead>
+                  <TableHead className="min-w-52">
+                    Task
+                    <RequiredMark />
+                  </TableHead>
                   <TableHead className="w-32">Priority</TableHead>
                   <TableHead className="w-24">Planned %</TableHead>
                   <TableHead className="w-24">Actual %</TableHead>
                   <TableHead className="w-36">Status</TableHead>
-                  <TableHead className="w-24">Planned h</TableHead>
-                  <TableHead className="w-24">Spent h</TableHead>
+                  <TableHead className="w-24">Planned hrs</TableHead>
+                  <TableHead className="w-24">Spent hrs</TableHead>
                   <TableHead className="w-12" />
                 </TableRow>
               </TableHeader>
@@ -105,8 +110,14 @@ export function TaskTable({
 
                     <TableCell>
                       <select
-                        {...register(`tasks.${index}.priority`)}
-                        className="h-9 w-full rounded-md border bg-card px-2 text-sm"
+                        {...register(`tasks.${index}.priority`, {
+                          onChange: (event) => {
+                            event.target.dataset.priority = event.target.value;
+                          },
+                        })}
+                        defaultValue={field.priority}
+                        data-priority={field.priority}
+                        className={PRIORITY_SELECT_CLASSES}
                       >
                         {PRIORITIES.map((option) => (
                           <option key={option.value} value={option.value}>

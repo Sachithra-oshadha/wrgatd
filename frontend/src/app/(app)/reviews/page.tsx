@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Inbox } from "lucide-react";
+import { ClipboardCheck, Inbox } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -115,6 +115,7 @@ export default function ReviewQueuePage() {
                     <TableCell className="text-right">
                       <Button asChild variant="ghost" size="sm">
                         <Link href={`/reviews/${report.report_id}`}>
+                          <ClipboardCheck className="h-4 w-4" />
                           Review
                         </Link>
                       </Button>

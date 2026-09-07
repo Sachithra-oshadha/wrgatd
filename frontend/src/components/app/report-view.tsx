@@ -9,7 +9,8 @@ import {
 } from "@/components/ui/table";
 import { Star } from "lucide-react";
 
-import { PRIORITIES, TASK_STATUSES } from "@/lib/constants";
+import { PriorityBadge } from "@/components/app/priority-badge";
+import { TASK_STATUSES } from "@/lib/constants";
 import type {
   NextWeekTask,
   ReportAchievement,
@@ -88,8 +89,8 @@ export function ReportView({ version }: { version: VersionContent }) {
                         )}
                       </TableCell>
 
-                      <TableCell className="text-subtle">
-                        {label(PRIORITIES, task.priority)}
+                      <TableCell>
+                        <PriorityBadge priority={task.priority} />
                       </TableCell>
 
                       <TableCell className="text-subtle">
@@ -184,9 +185,10 @@ export function ReportView({ version }: { version: VersionContent }) {
                 >
                   <span className="text-body">{item.description}</span>
 
-                  <span className="shrink-0 text-xs text-subtle">
-                    {label(PRIORITIES, item.priority)}
-                  </span>
+                  <PriorityBadge
+                    priority={item.priority}
+                    className="shrink-0"
+                  />
                 </div>
               ))
             )}

@@ -8,6 +8,7 @@
   --brand-primary: #1e90ff;
   --brand-action: #0d6efd;
   --brand-action-hover: #0b5ed7;
+  --brand-deep: #0a2b6b;
 
   /* Phase 39 - surfaces */
   --surface-page: #f4f6f9;
@@ -27,6 +28,21 @@
   --status-late: #d63939;
   --status-draft: #666666;
   --status-not-started: #94a3b8;
+
+  /* Priority levels */
+  --priority-low: #2e865f;
+  --priority-medium: #ca8a04;
+  --priority-high: #f97316;
+  --priority-critical: #d63939;
+
+  /* Identity spectrum - hashed color-coding for people & projects.
+     Mirrors chart-theme.ts categorical order, kept in sync by hand. */
+  --spectrum-1: #2a78d6;
+  --spectrum-2: #eb6834;
+  --spectrum-3: #1baf7a;
+  --spectrum-4: #eda100;
+  --spectrum-5: #e87ba4;
+  --spectrum-6: #7c5cff;
 
   /* shadcn semantic tokens mapped onto the palette */
   --background: var(--surface-page);
@@ -82,6 +98,22 @@
   --color-status-late: var(--status-late);
   --color-status-draft: var(--status-draft);
   --color-status-not-started: var(--status-not-started);
+
+  --color-priority-low: var(--priority-low);
+  --color-priority-medium: var(--priority-medium);
+  --color-priority-high: var(--priority-high);
+  --color-priority-critical: var(--priority-critical);
+
+  --color-spectrum-1: var(--spectrum-1);
+  --color-spectrum-2: var(--spectrum-2);
+  --color-spectrum-3: var(--spectrum-3);
+  --color-spectrum-4: var(--spectrum-4);
+  --color-spectrum-5: var(--spectrum-5);
+  --color-spectrum-6: var(--spectrum-6);
+
+  --color-brand-primary: var(--brand-primary);
+  --color-brand-action: var(--brand-action);
+  --color-brand-deep: var(--brand-deep);
 
   --radius-sm: calc(var(--radius) - 2px);
   --radius-md: var(--radius);

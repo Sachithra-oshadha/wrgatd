@@ -2,6 +2,7 @@
 
 import { use } from "react";
 import Link from "next/link";
+import { Eye } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -154,6 +155,7 @@ export default function MemberProfilePage({
                       <TableCell className="text-right">
                         <Button asChild variant="ghost" size="sm">
                           <Link href={`/reports/${report.report_id}`}>
+                            <Eye className="h-4 w-4" />
                             View
                           </Link>
                         </Button>
