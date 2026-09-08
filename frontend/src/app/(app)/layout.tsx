@@ -1,6 +1,7 @@
 import { AppHeader } from "@/components/layout/app-header";
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { SidebarProvider } from "@/components/layout/sidebar-context";
+import { AssistantPanel } from "@/components/app/assistant-panel";
 
 export default function AppLayout({
   children,
@@ -19,6 +20,7 @@ export default function AppLayout({
             {children}
           </main>
         </div>
+        <AssistantPanel />
       </div>
     </SidebarProvider>
   );
