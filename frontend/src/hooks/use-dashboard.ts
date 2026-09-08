@@ -8,9 +8,11 @@ import { toQuery } from "@/lib/query-string";
 import type {
   ActivityEvent,
   HoursPoint,
+  MemberSection,
   MemberStats,
   MemberSubmission,
   PersonalSummary,
+  SectionType,
   TasksTrendPoint,
   TeamSummary,
   WorkloadPoint,
@@ -53,7 +55,9 @@ export function useTasksTrend(
 }
 
 
-export function useWorkload(filters: WeekFilters = {}) {
+export function useWorkload(
+  filters: { week_start?: string; user_id?: number } = {}
+) {
   return useQuery({
     queryKey: queryKeys.dashboard.workload(filters),
     queryFn: () =>
@@ -91,6 +95,17 @@ export function useActivity(limit = 15) {
     queryKey: queryKeys.dashboard.activity,
     queryFn: () =>
       apiFetch<ActivityEvent[]>(`/dashboard/activity?limit=${limit}`),
+  });
+}
+
+
+export function useTeamSections(
+  filters: WeekFilters & { section: SectionType }
+) {
+  return useQuery({
+    queryKey: queryKeys.dashboard.sections(filters),
+    queryFn: () =>
+      apiFetch<MemberSection[]>(`/dashboard/sections${toQuery(filters)}`),
   });
 }
 

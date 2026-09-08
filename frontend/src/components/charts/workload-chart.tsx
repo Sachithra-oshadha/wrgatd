@@ -16,8 +16,17 @@ import { axisProps, chartTheme, tooltipStyle } from "./chart-theme";
 import { useWorkload } from "@/hooks/use-dashboard";
 
 
-export function WorkloadChart({ weekStart }: { weekStart?: string }) {
-  const { data, isPending } = useWorkload({ week_start: weekStart });
+export function WorkloadChart({
+  weekStart,
+  userId,
+}: {
+  weekStart?: string;
+  userId?: number;
+}) {
+  const { data, isPending } = useWorkload({
+    week_start: weekStart,
+    user_id: userId,
+  });
 
   return (
     <ChartCard

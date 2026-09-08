@@ -16,8 +16,17 @@ import { axisProps, chartTheme, tooltipStyle } from "./chart-theme";
 import { useHoursBreakdown } from "@/hooks/use-dashboard";
 
 
-export function HoursChart({ weekStart }: { weekStart?: string }) {
-  const { data, isPending } = useHoursBreakdown({ week_start: weekStart });
+export function HoursChart({
+  weekStart,
+  userId,
+}: {
+  weekStart?: string;
+  userId?: number;
+}) {
+  const { data, isPending } = useHoursBreakdown({
+    week_start: weekStart,
+    user_id: userId,
+  });
 
   return (
     <ChartCard

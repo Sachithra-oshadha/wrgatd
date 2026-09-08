@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ClipboardCheck, Inbox } from "lucide-react";
+import { ClipboardCheck, Eye, Inbox } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -23,6 +23,7 @@ import { ProjectBadge } from "@/components/app/project-badge";
 
 import { useTeamReports } from "@/hooks/use-reports";
 import { useProjects } from "@/hooks/use-projects";
+import { useDirectory } from "@/hooks/use-users";
 import { formatWeekRange } from "@/lib/weeks";
 import type { ReportStatus } from "@/lib/types";
 import { fullName } from "@/lib/types";
@@ -38,14 +39,22 @@ const STATUS_OPTIONS: { value: ReportStatus | ""; label: string }[] = [
 
 
 export default function ReviewQueuePage() {
-  const [status, setStatus] = useState<ReportStatus | "">("");
+  const [status, setStatus] = useState<ReportStatus | "">("SUBMITTED");
   const [projectId, setProjectId] = useState("");
+  const [userId, setUserId] = useState("");
+  const [weekFrom, setWeekFrom] = useState("");
+  const [weekTo, setWeekTo] = useState("");
   const [page, setPage] = useState(1);
 
   const projects = useProjects();
+  const members = useDirectory({ role: "TEAM_MEMBER" });
 
   const { data, isPending, isError, error, refetch } = useTeamReports({
-    status: "SUBMITTED",
+    status: status || undefined,
+    project_id: projectId ? Number(projectId) : undefined,
+    user_id: userId ? Number(userId) : undefined,
+    week_from: weekFrom || undefined,
+    week_to: weekTo || undefined,
     page,
   });
 
@@ -53,6 +62,9 @@ export default function ReviewQueuePage() {
     ? Math.max(1, Math.ceil(data.total / data.page_size))
     : 1;
 
+  function resetPage() {
+    setPage(1);
+  }
 
   return (
     <>
@@ -61,6 +73,105 @@ export default function ReviewQueuePage() {
         description="Reports submitted by your team, waiting on you."
       />
 
+      <div className="mb-4 flex flex-wrap items-end gap-3">
+        <select
+          value={userId}
+          onChange={(event) => {
+            setUserId(event.target.value);
+            resetPage();
+          }}
+          className="h-9 rounded-md border bg-card px-3 text-sm"
+          aria-label="Team member"
+        >
+          <option value="">All members</option>
+
+          {members.data?.map((member) => (
+            <option key={member.user_id} value={String(member.user_id)}>
+              {fullName(member)}
+            </option>
+          ))}
+        </select>
+
+        <select
+          value={projectId}
+          onChange={(event) => {
+            setProjectId(event.target.value);
+            resetPage();
+          }}
+          className="h-9 rounded-md border bg-card px-3 text-sm"
+          aria-label="Project"
+        >
+          <option value="">All projects</option>
+
+          {projects.data?.items.map((project) => (
+            <option
+              key={project.project_id}
+              value={String(project.project_id)}
+            >
+              {project.name}
+            </option>
+          ))}
+        </select>
+
+        <select
+          value={status}
+          onChange={(event) => {
+            setStatus(event.target.value as ReportStatus | "");
+            resetPage();
+          }}
+          className="h-9 rounded-md border bg-card px-3 text-sm"
+          aria-label="Status"
+        >
+          {STATUS_OPTIONS.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+
+        <div className="flex items-center gap-2">
+          <label className="flex flex-col gap-1 text-xs text-subtle">
+            Week from
+            <input
+              type="date"
+              value={weekFrom}
+              onChange={(event) => {
+                setWeekFrom(event.target.value);
+                resetPage();
+              }}
+              className="h-9 rounded-md border bg-card px-3 text-sm"
+            />
+          </label>
+
+          <label className="flex flex-col gap-1 text-xs text-subtle">
+            Week to
+            <input
+              type="date"
+              value={weekTo}
+              onChange={(event) => {
+                setWeekTo(event.target.value);
+                resetPage();
+              }}
+              className="h-9 rounded-md border bg-card px-3 text-sm"
+            />
+          </label>
+
+          {(weekFrom || weekTo) && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setWeekFrom("");
+                setWeekTo("");
+                resetPage();
+              }}
+            >
+              Clear dates
+            </Button>
+          )}
+        </div>
+      </div>
+
       {isError ? (
         <ErrorState error={error} onRetry={() => refetch()} />
       ) : isPending ? (
@@ -68,8 +179,8 @@ export default function ReviewQueuePage() {
       ) : data.items.length === 0 ? (
         <EmptyState
           icon={Inbox}
-          title="Nothing to review"
-          description="Submitted reports will show up here."
+          title="Nothing found"
+          description="No reports match the selected filters."
         />
       ) : (
         <>
@@ -115,8 +226,17 @@ export default function ReviewQueuePage() {
                     <TableCell className="text-right">
                       <Button asChild variant="ghost" size="sm">
                         <Link href={`/reviews/${report.report_id}`}>
-                          <ClipboardCheck className="h-4 w-4" />
-                          Review
+                          {report.status === "SUBMITTED" ? (
+                            <>
+                              <ClipboardCheck className="h-4 w-4" />
+                              Review
+                            </>
+                          ) : (
+                            <>
+                              <Eye className="h-4 w-4" />
+                              View
+                            </>
+                          )}
                         </Link>
                       </Button>
                     </TableCell>

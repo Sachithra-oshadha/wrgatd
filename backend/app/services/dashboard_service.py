@@ -5,7 +5,9 @@ from sqlalchemy import String, and_, case, cast, func, select
 from sqlalchemy.orm import Session, selectinload
 
 from app.core.weeks import current_week_bounds
+from app.models.next_week_task import NextWeekTask
 from app.models.project import Project
+from app.models.report_achievement import ReportAchievement
 from app.models.report_blocker import ReportBlocker
 from app.models.report_hours import ReportHours
 from app.models.report_task import ReportTask
@@ -245,11 +247,20 @@ def workload_by_project(
     db: Session,
     *,
     week_start: date | None = None,
+    user_id: int | None = None,
 ) -> list[dict]:
     """Chart 3: hours per project for a week."""
 
     if week_start is None:
         week_start, _ = current_week_bounds()
+
+    conditions = [
+        ReportHours.version_id.in_(_current_version_ids()),
+        WeeklyReport.week_start == week_start,
+    ]
+
+    if user_id is not None:
+        conditions.append(WeeklyReport.user_id == user_id)
 
     rows = db.execute(
         select(
@@ -267,10 +278,7 @@ def workload_by_project(
             WeeklyReport.report_id == ReportVersion.report_id,
         )
         .join(Project, Project.project_id == WeeklyReport.project_id)
-        .where(
-            ReportHours.version_id.in_(_current_version_ids()),
-            WeeklyReport.week_start == week_start,
-        )
+        .where(*conditions)
         .group_by(Project.name)
         .order_by(func.sum(ReportHours.hours).desc())
     ).all()
@@ -379,6 +387,129 @@ def submission_by_member(
                 if report_status
                 else ("LATE" if week_end < today else "NOT_STARTED")
             ),
+        }
+        for (
+            user_id,
+            first_name,
+            last_name,
+            report_id,
+            report_status,
+            project_name,
+        ) in rows
+    ]
+
+
+SECTION_MODELS = {
+    "blockers": ReportBlocker,
+    "achievements": ReportAchievement,
+    "tasks": ReportTask,
+    "next_week_tasks": NextWeekTask,
+}
+
+
+def _serialize_section_item(section: str, item) -> dict:
+    if section == "blockers":
+        return {"description": item.description, "is_key": item.is_key_issue}
+
+    if section == "achievements":
+        return {
+            "description": item.description,
+            "is_key": item.is_key_achievement,
+        }
+
+    if section == "next_week_tasks":
+        return {"description": item.description, "priority": item.priority}
+
+    # tasks
+    return {
+        "description": item.task_name,
+        "priority": item.priority,
+        "status": item.status,
+    }
+
+
+def section_by_member(
+    db: Session,
+    *,
+    section: str,
+    week_start: date | None = None,
+    project_id: int | None = None,
+) -> list[dict]:
+    """One report section (e.g. blockers), for every team member, for a
+    single week - lets a manager compare across the team without opening
+    each report individually."""
+
+    if week_start is None:
+        week_start, week_end = current_week_bounds()
+    else:
+        week_end = week_start + timedelta(days=6)
+
+    report_join_conditions = [
+        WeeklyReport.user_id == User.user_id,
+        WeeklyReport.week_start == week_start,
+    ]
+
+    if project_id is not None:
+        report_join_conditions.append(WeeklyReport.project_id == project_id)
+
+    rows = db.execute(
+        select(
+            User.user_id,
+            User.first_name,
+            User.last_name,
+            WeeklyReport.report_id,
+            WeeklyReport.status,
+            Project.name,
+        )
+        .select_from(User)
+        .outerjoin(WeeklyReport, and_(*report_join_conditions))
+        .outerjoin(Project, Project.project_id == WeeklyReport.project_id)
+        .where(
+            User.is_active.is_(True),
+            User.role == UserRole.TEAM_MEMBER,
+        )
+        .order_by(User.first_name, User.last_name)
+    ).all()
+
+    report_ids = [row[3] for row in rows if row[3] is not None]
+
+    model = SECTION_MODELS[section]
+    items_by_report: dict[int, list] = {}
+
+    if report_ids:
+        item_rows = db.execute(
+            select(ReportVersion.report_id, model)
+            .join(
+                ReportVersion,
+                ReportVersion.version_id == model.version_id,
+            )
+            .where(
+                ReportVersion.report_id.in_(report_ids),
+                model.version_id.in_(_current_version_ids()),
+            )
+        ).all()
+
+        for report_id, item in item_rows:
+            items_by_report.setdefault(report_id, []).append(item)
+
+    today = date.today()
+
+    return [
+        {
+            "user_id": user_id,
+            "first_name": first_name,
+            "last_name": last_name,
+            "report_id": report_id,
+            "project": project_name,
+            "status": (
+                report_status
+                if report_status
+                else ("LATE" if week_end < today else "NOT_STARTED")
+            ),
+            "items": [
+                _serialize_section_item(section, item)
+                for item in items_by_report.get(report_id, [])
+            ],
         }
         for (
             user_id,

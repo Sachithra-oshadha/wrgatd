@@ -224,5 +224,7 @@ export interface TeamReportFilters {
   project_id?: number;
   status?: ReportStatus;
   week_start?: string;
+  week_from?: string;
+  week_to?: string;
   page?: number;
 }

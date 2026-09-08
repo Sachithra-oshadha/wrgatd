@@ -231,3 +231,26 @@ export interface MemberStats {
   expected_reports: number;
   compliance_percent: number;
 }
+
+export type SectionType =
+  | "blockers"
+  | "achievements"
+  | "tasks"
+  | "next_week_tasks";
+
+export interface SectionItem {
+  description: string;
+  is_key: boolean;
+  priority: Priority | null;
+  status: TaskStatus | null;
+}
+
+export interface MemberSection {
+  user_id: number;
+  first_name: string;
+  last_name: string;
+  report_id: number | null;
+  project: string | null;
+  status: ReportStatus | "NOT_STARTED" | "LATE";
+  items: SectionItem[];
+}

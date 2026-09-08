@@ -4,7 +4,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { apiFetch } from "@/lib/api";
 import { queryKeys } from "@/lib/query-keys";
-import type { Paginated, UserDetail, UserRole } from "@/lib/types";
+import { toQuery } from "@/lib/query-string";
+import type { Paginated, User, UserDetail, UserRole } from "@/lib/types";
 import { toast } from "sonner";
 
 
@@ -34,6 +35,13 @@ export function useUsers(
     queryFn: () =>
       apiFetch<Paginated<UserDetail>>(`/users?${params.toString()}`),
     enabled: options.enabled ?? true,
+  });
+}
+
+export function useDirectory(filters: { role?: UserRole } = {}) {
+  return useQuery({
+    queryKey: queryKeys.users.directory(filters),
+    queryFn: () => apiFetch<User[]>(`/users/directory${toQuery(filters)}`),
   });
 }
 

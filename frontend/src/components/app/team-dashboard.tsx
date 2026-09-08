@@ -21,6 +21,7 @@ import { MetricCard } from "@/components/app/metric-card";
 import { StatusBadge } from "@/components/app/status-badge";
 import { UserAvatar } from "@/components/app/user-avatar";
 import { ActivityItem } from "@/components/app/activity-item";
+import { TeamSectionView } from "@/components/app/team-section-view";
 import { StatusDistribution } from "@/components/charts/status-distribution";
 import { TasksTrendChart } from "@/components/charts/tasks-trend-chart";
 import { WorkloadChart } from "@/components/charts/workload-chart";
@@ -46,6 +47,7 @@ export function TeamDashboard({ compact = false }: { compact?: boolean }) {
   const [weekStart, setWeekStart] = useState(toApiDate(start));
   const [weekEnd, setWeekEnd] = useState(toApiDate(end));
   const [projectId, setProjectId] = useState("");
+  const [memberId, setMemberId] = useState("");
 
   const filters = {
     week_start: weekStart,
@@ -65,6 +67,10 @@ export function TeamDashboard({ compact = false }: { compact?: boolean }) {
 
   const data = summary.data;
   const members = submissions.data ?? [];
+  const selectedUserId = memberId ? Number(memberId) : undefined;
+  const visibleMembers = memberId
+    ? members.filter((member) => String(member.user_id) === memberId)
+    : members;
 
   return (
     <div className={compact ? "mt-8 space-y-6" : "space-y-6"}>
@@ -115,6 +121,21 @@ export function TeamDashboard({ compact = false }: { compact?: boolean }) {
             </option>
           ))}
         </select>
+
+        <select
+          value={memberId}
+          onChange={(event) => setMemberId(event.target.value)}
+          className="h-9 rounded-md border bg-card px-3 text-sm"
+          aria-label="Team member"
+        >
+          <option value="">All members</option>
+
+          {members.map((member) => (
+            <option key={member.user_id} value={String(member.user_id)}>
+              {member.first_name} {member.last_name}
+            </option>
+          ))}
+        </select>
       </div>
 
       {/* Phase 25 metrics */}
@@ -154,17 +175,18 @@ export function TeamDashboard({ compact = false }: { compact?: boolean }) {
       {/* Phase 27 charts */}
       <div className="grid gap-6 lg:grid-cols-2">
         <StatusDistribution
-          submissions={members}
+          submissions={visibleMembers}
           isLoading={submissions.isPending}
         />
 
         <TasksTrendChart
           projectId={projectId ? Number(projectId) : undefined}
+          userId={selectedUserId}
         />
 
-        <WorkloadChart weekStart={weekStart} />
+        <WorkloadChart weekStart={weekStart} userId={selectedUserId} />
 
-        <HoursChart weekStart={weekStart} />
+        <HoursChart weekStart={weekStart} userId={selectedUserId} />
       </div>
       {/* Phase 26 team table */}
       <Card>
@@ -188,7 +210,7 @@ export function TeamDashboard({ compact = false }: { compact?: boolean }) {
                 </TableHeader>
 
                 <TableBody>
-                  {members.map((member) => (
+                  {visibleMembers.map((member) => (
                     <TableRow key={member.user_id}>
                       <TableCell>
                         <Link
@@ -238,6 +260,13 @@ export function TeamDashboard({ compact = false }: { compact?: boolean }) {
           )}
         </CardContent>
       </Card>
+
+      {/* Bonus: side-by-side section comparison across the team */}
+      <TeamSectionView
+        weekStart={weekStart}
+        projectId={projectId ? Number(projectId) : undefined}
+        userId={selectedUserId}
+      />
 
       {/* Phase 27 activity feed */}
       <Card>

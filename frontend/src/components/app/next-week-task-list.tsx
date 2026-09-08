@@ -85,23 +85,25 @@ export function NextWeekTaskList({
                 )}
               </div>
 
-              <select
-                {...register(`next_week_tasks.${index}.priority`, {
-                  onChange: (event) => {
-                    event.target.dataset.priority = event.target.value;
-                  },
-                })}
-                defaultValue={field.priority}
-                data-priority={field.priority}
-                className={`w-32 shrink-0 ${PRIORITY_SELECT_CLASSES}`}
-                aria-label="Priority"
-              >
-                {PRIORITIES.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
+              <div className="w-32 shrink-0">
+                <select
+                  {...register(`next_week_tasks.${index}.priority`, {
+                    onChange: (event) => {
+                      event.target.dataset.priority = event.target.value;
+                    },
+                  })}
+                  defaultValue={field.priority}
+                  data-priority={field.priority}
+                  className={PRIORITY_SELECT_CLASSES}
+                  aria-label="Priority"
+                >
+                  {PRIORITIES.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
               <Button
                 type="button"

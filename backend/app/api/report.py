@@ -121,6 +121,8 @@ def team_reports(
     project_id: int | None = Query(default=None),
     report_status: ReportStatus | None = Query(default=None, alias="status"),
     week_start: date | None = Query(default=None),
+    week_from: date | None = Query(default=None),
+    week_to: date | None = Query(default=None),
     page: int = Query(default=1, ge=1),
     page_size: int = Query(default=50, ge=1, le=200),
     db: Session = Depends(get_db),
@@ -133,6 +135,8 @@ def team_reports(
         project_id=project_id,
         report_status=report_status.value if report_status else None,
         week_start=week_start,
+        week_from=week_from,
+        week_to=week_to,
         page=page,
         page_size=page_size,
     )

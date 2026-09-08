@@ -9,9 +9,11 @@ from app.models.user import User
 from app.schemas.dashboard import (
     ActivityEvent,
     HoursPoint,
+    MemberSection,
     MemberStats,
     MemberSubmission,
     PersonalSummary,
+    SectionType,
     TasksTrendPoint,
     TeamSummary,
     WorkloadPoint,
@@ -70,10 +72,13 @@ def tasks_trend(
 @router.get("/workload", response_model=list[WorkloadPoint])
 def workload(
     week_start: date | None = Query(default=None),
+    user_id: int | None = Query(default=None),
     db: Session = Depends(get_db),
     _: User = Depends(require_manager),
 ):
-    return dashboard_service.workload_by_project(db, week_start=week_start)
+    return dashboard_service.workload_by_project(
+        db, week_start=week_start, user_id=user_id
+    )
 
 
 @router.get("/hours-breakdown", response_model=list[HoursPoint])
@@ -100,6 +105,22 @@ def submissions(
     _: User = Depends(require_manager),
 ):
     return dashboard_service.submission_by_member(db, week_start=week_start)
+
+
+@router.get("/sections", response_model=list[MemberSection])
+def sections(
+    section: SectionType,
+    week_start: date | None = Query(default=None),
+    project_id: int | None = Query(default=None),
+    db: Session = Depends(get_db),
+    _: User = Depends(require_manager),
+):
+    return dashboard_service.section_by_member(
+        db,
+        section=section.value,
+        week_start=week_start,
+        project_id=project_id,
+    )
 
 
 @router.get("/activity", response_model=list[ActivityEvent])

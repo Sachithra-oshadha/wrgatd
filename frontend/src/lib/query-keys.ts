@@ -7,6 +7,8 @@ export const queryKeys = {
         ["users", "list", filters] as const,
         detail: (id: number) => ["users", "detail", id] as const,
         stats: (id: number) => ["users", "stats", id] as const,
+        directory: (filters: object) =>
+        ["users", "directory", filters] as const,
     },
 
     projects: {
@@ -39,5 +41,7 @@ export const queryKeys = {
         hours: (filters: object) =>
         ["dashboard", "hours", filters] as const,
         activity: ["dashboard", "activity"] as const,
+        sections: (filters: object) =>
+        ["dashboard", "sections", filters] as const,
     },
 } as const;

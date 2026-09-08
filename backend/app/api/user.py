@@ -51,13 +51,14 @@ def list_users(
 
 @router.get("/directory", response_model=list[UserResponse])
 def directory(
+    role: UserRole | None = Query(default=None),
     db: Session = Depends(get_db),
     _: User = Depends(require_manager),
 ):
     """Active users, name and email only. Manager-visible."""
 
     users, _total = user_service.list_users(
-        db, is_active=True, page=1, page_size=500
+        db, role=role, is_active=True, page=1, page_size=500
     )
 
     return users

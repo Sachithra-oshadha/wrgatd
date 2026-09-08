@@ -1,4 +1,5 @@
 from datetime import date, datetime
+from enum import Enum
 
 from pydantic import BaseModel, ConfigDict
 
@@ -74,3 +75,29 @@ class MemberStats(BaseModel):
     draft_count: int
     expected_reports: int
     compliance_percent: float
+
+
+class SectionType(str, Enum):
+    """The report sections that can be compared side by side across a team."""
+
+    BLOCKERS = "blockers"
+    ACHIEVEMENTS = "achievements"
+    TASKS = "tasks"
+    NEXT_WEEK_TASKS = "next_week_tasks"
+
+
+class SectionItem(BaseModel):
+    description: str
+    is_key: bool = False
+    priority: str | None = None
+    status: str | None = None
+
+
+class MemberSection(BaseModel):
+    user_id: int
+    first_name: str
+    last_name: str
+    report_id: int | None
+    project: str | None
+    status: str
+    items: list[SectionItem]
