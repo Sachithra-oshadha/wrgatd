@@ -1,0 +1,46 @@
+# Environment
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+*.egg-info/
+dist/
+build/
+
+# Node
+node_modules/
+.next/
+out/
+.turbo/
+npm-debug.log*
+yarn-error.log*
+
+# Testing
+/frontend/test-results/
+/frontend/playwright-report/
+/frontend/blob-report/
+/frontend/playwright/.cache/
+
+# Claude Code local state
+.claude/settings.local.json
+.claude/scheduled_tasks.lock
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
